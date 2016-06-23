@@ -11,19 +11,44 @@ Any outside use is not allowed.
 char dName[]= "BLM"; //ByteLens Mesh
 uint8_t myMac[6];
 
-enum advtype_t{ CONFIG = 0X01, DATA, TIME };
+enum advtype_t{ CONFIG = 0X01, DATA, DATA_ACK, TIME };
 typedef enum advtype_t AdvType;
 
+enum src{SOURCE, RELAY};
+
 typedef struct Packets{
-  uint8_t token[2]={0,0};
+  uint16_t token=0;
   uint8_t mac[6]={0,0,0,0,0,0};
-  uint8_t data[5]={1,2,3,4,5};
+  uint8_t data[5]={0,0,0,0,0};
+  uint8_t org=SOURCE;
   AdvType at=DATA;
-  uint8_t ttime=0;
+  uint8_t ttime=6;
  }Packet;
 
- Packet p;
+ Packet myp;
 
+void packetinfo(Packet q)
+{
+  Serial.print("Mac Addr: ");
+                for(int i=0;i<6;i++)
+                {
+                  Serial.print(q.mac[i],HEX);
+                  if(i<5)
+                  Serial.print(" : ");
+                  else
+                  Serial.println("");
+                }
+                Serial.print("Data: ");
+                for(int i=0;i<5;i++)
+                {
+                  Serial.print(q.data[i]);
+                  if(i<4)
+                  Serial.print(" : ");
+                  else
+                  Serial.println("");
+                }
+                Serial.print("Ttime: "); Serial.println(q.ttime);
+}
 uint8_t nrfRandom()
 {
      NRF_RNG->TASKS_START = 1; 
@@ -35,17 +60,17 @@ uint8_t nrfRandom()
 void setPackMac(uint8_t *_m)
 {
  for(int i=0;i<6;i++)
-  p.mac[i]=_m[i];
+  myp.mac[i]=_m[i];
 }
 void setPack(uint8_t *_d,uint8_t ln, AdvType _a) // data, data len, AdType
 {
-  p.token[0]=nrfRandom();
-  p.token[1]=nrfRandom();
+  myp.token=nrfRandom()<<7 | nrfRandom();
+//  p.token[1]=nrfRandom();
   for(int i=0;i<ln;i++)// copy data to packet
   {
-    p.data[i]=_d[i];
+    myp.data[i]=_d[i];
   }
-  p.at=_a;
+  myp.at=_a;
 }
 #endif
 /*
